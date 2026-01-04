@@ -43,7 +43,7 @@ def ensure_directory_exists(directory: str) -> None:
     try:
         Path(directory).mkdir(parents=True, exist_ok=True)
     except OSError as e:
-        raise MCPPermissionError(f"Cannot create directory {directory}: {str(e)}", original_error=e)
+        raise MCPPermissionError(f"Cannot create directory {directory}: {str(e)}", original_error=e) from e
 
 
 def check_directory_writable(directory: str) -> bool:

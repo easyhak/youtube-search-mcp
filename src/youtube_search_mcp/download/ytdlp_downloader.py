@@ -9,7 +9,6 @@ import yt_dlp
 from ..core.exceptions import (
     DiskSpaceError,
     DownloadError,
-    FFmpegNotFoundError,
     NetworkError,
     VideoNotFoundError,
 )
@@ -147,8 +146,8 @@ class YtDlpDownloader(Downloader):
         except yt_dlp.utils.DownloadError as e:
             error_msg = str(e).lower()
             if "video unavailable" in error_msg:
-                raise VideoNotFoundError(f"Video {video_id} not found", original_error=e)
-            raise NetworkError(f"Network error getting formats: {str(e)}", original_error=e)
+                raise VideoNotFoundError(f"Video {video_id} not found", original_error=e) from e
+            raise NetworkError(f"Network error getting formats: {str(e)}", original_error=e) from e
 
     async def _download(self, params: DownloadParams, is_video: bool) -> DownloadResult:
         """
@@ -201,13 +200,13 @@ class YtDlpDownloader(Downloader):
                 quality=params.quality,
             )
 
-        except yt_dlp.utils.DownloadError as e:
-            self._handle_ytdlp_error(e, params.video_id)
-        except (DiskSpaceError, MCPPermissionError):
-            raise
+        except yt_dlp.utils.DownloadError as download_error:
+            self._handle_ytdlp_error(download_error, params.video_id)
+        except (DiskSpaceError, MCPPermissionError) as disk_space_or_permission_error:
+            raise disk_space_or_permission_error
         except Exception as e:
             logger.exception(f"Unexpected error during download: {e}")
-            raise DownloadError(f"Unexpected error during download: {str(e)}", original_error=e)
+            raise DownloadError(f"Unexpected error during download: {str(e)}", original_error=e) from e
 
     def _validate_output_directory(self, output_dir: str | None) -> str:
         """

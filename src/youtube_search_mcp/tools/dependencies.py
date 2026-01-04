@@ -53,12 +53,12 @@ async def initialize_dependencies() -> None:
 def _ensure_initialized() -> None:
     """Synchronously initialize dependencies if they are missing."""
     global _search_provider, _downloader, _formatters
-    
+
     if _search_provider is not None:
         return
 
     logger.info("Performing lazy initialization of dependencies...")
-    
+
     # Initialize search provider
     _search_provider = YtDlpSearchProvider(
         max_results_default=config.default_max_results,

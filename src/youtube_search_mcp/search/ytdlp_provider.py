@@ -103,14 +103,15 @@ class YtDlpSearchProvider(SearchProvider):
 
             return videos
 
-        except yt_dlp.utils.DownloadError as e:
-            error_msg = str(e)
+        except yt_dlp.utils.DownloadError as download_error:
+            error_msg = str(download_error)
             if self._is_network_error(error_msg):
-                raise NetworkError(f"Network error during search: {error_msg}", original_error=e)
-            raise SearchProviderError(f"Search failed: {error_msg}", original_error=e)
-        except Exception as e:
-            logger.exception(f"Unexpected error during search: {e}")
-            raise SearchProviderError(f"Unexpected error during search: {str(e)}", original_error=e)
+                raise NetworkError(f"Network error during search: {error_msg}", original_error=download_error) from download_error
+            raise SearchProviderError(f"Search failed: {error_msg}", original_error=download_error) from download_error
+
+        except Exception as exception:
+            logger.exception(f"Unexpected error during search: {exception}")
+            raise SearchProviderError(f"Unexpected error during search: {str(exception)}", original_error=exception) from exception
 
     def _execute_search(self, params: SearchParams) -> list[dict[str, Any]]:
         """
@@ -156,22 +157,22 @@ class YtDlpSearchProvider(SearchProvider):
 
             return details
 
-        except yt_dlp.utils.DownloadError as e:
-            error_msg = str(e)
+        except yt_dlp.utils.DownloadError as download_error:
+            error_msg = str(download_error)
             if self._is_video_unavailable(error_msg):
                 raise VideoNotFoundError(
-                    f"Video {video_id} not found or unavailable", original_error=e
-                )
+                    f"Video {video_id} not found or unavailable", original_error=download_error
+                ) from download_error
             if self._is_network_error(error_msg):
                 raise NetworkError(
-                    f"Network error fetching video details: {error_msg}", original_error=e
-                )
-            raise ExtractionError(f"Failed to extract video details: {error_msg}", original_error=e)
-        except Exception as e:
-            logger.exception(f"Unexpected error getting video details: {e}")
+                    f"Network error fetching video details: {error_msg}", original_error=download_error
+                ) from download_error
+            raise ExtractionError(f"Failed to extract video details: {error_msg}", original_error=download_error) from download_error
+        except Exception as exception:
+            logger.exception(f"Unexpected error getting video details: {exception}")
             raise ExtractionError(
-                f"Unexpected error getting video details: {str(e)}", original_error=e
-            )
+                f"Unexpected error getting video details: {str(exception)}", original_error=exception
+            ) from exception
 
     def _execute_extract_info(self, video_id: str) -> dict[str, Any]:
         """
@@ -233,18 +234,18 @@ class YtDlpSearchProvider(SearchProvider):
 
             return playlists
 
-        except yt_dlp.utils.DownloadError as e:
-            error_msg = str(e)
+        except yt_dlp.utils.DownloadError as download_error:
+            error_msg = str(download_error)
             if self._is_network_error(error_msg):
                 raise NetworkError(
-                    f"Network error during playlist search: {error_msg}", original_error=e
-                )
-            raise SearchProviderError(f"Playlist search failed: {error_msg}", original_error=e)
-        except Exception as e:
-            logger.exception(f"Unexpected error during playlist search: {e}")
+                    f"Network error during playlist search: {error_msg}", original_error=download_error
+                ) from download_error
+            raise SearchProviderError(f"Playlist search failed: {error_msg}", original_error=download_error) from download_error
+        except Exception as exception:
+            logger.exception(f"Unexpected error during playlist search: {exception}")
             raise SearchProviderError(
-                f"Unexpected error during playlist search: {str(e)}", original_error=e
-            )
+                f"Unexpected error during playlist search: {str(exception)}", original_error=exception
+            ) from exception
 
     def _execute_playlist_search(self, query: str, max_results: int) -> list[dict[str, Any]]:
         """
@@ -332,24 +333,24 @@ class YtDlpSearchProvider(SearchProvider):
 
             return details
 
-        except yt_dlp.utils.DownloadError as e:
-            error_msg = str(e)
+        except yt_dlp.utils.DownloadError as download_error:
+            error_msg = str(download_error)
             if self._is_video_unavailable(error_msg):
                 raise VideoNotFoundError(
-                    f"Playlist {playlist_id} not found or unavailable", original_error=e
-                )
+                    f"Playlist {playlist_id} not found or unavailable", original_error=download_error
+                ) from download_error
             if self._is_network_error(error_msg):
                 raise NetworkError(
-                    f"Network error fetching playlist details: {error_msg}", original_error=e
-                )
+                    f"Network error fetching playlist details: {error_msg}", original_error=download_error
+                ) from download_error
             raise ExtractionError(
-                f"Failed to extract playlist details: {error_msg}", original_error=e
-            )
+                f"Failed to extract playlist details: {error_msg}", original_error=download_error
+            ) from download_error
         except Exception as e:
             logger.exception(f"Unexpected error getting playlist details: {e}")
             raise ExtractionError(
                 f"Unexpected error getting playlist details: {str(e)}", original_error=e
-            )
+            ) from e
 
     def _execute_extract_playlist(self, playlist_id: str) -> dict[str, Any]:
         """
@@ -411,19 +412,19 @@ class YtDlpSearchProvider(SearchProvider):
             if self._is_video_unavailable(error_msg):
                 raise VideoNotFoundError(
                     f"Playlist {playlist_id} not found or unavailable", original_error=e
-                )
+                ) from e
             if self._is_network_error(error_msg):
                 raise NetworkError(
                     f"Network error fetching playlist videos: {error_msg}", original_error=e
-                )
+                ) from e
             raise ExtractionError(
                 f"Failed to extract playlist videos: {error_msg}", original_error=e
-            )
+            ) from e
         except Exception as e:
             logger.exception(f"Unexpected error getting playlist videos: {e}")
             raise ExtractionError(
                 f"Unexpected error getting playlist videos: {str(e)}", original_error=e
-            )
+            ) from e
 
     def _execute_extract_playlist_videos(self, playlist_id: str) -> list[dict[str, Any]]:
         """

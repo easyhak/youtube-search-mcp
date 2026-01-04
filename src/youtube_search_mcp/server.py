@@ -12,7 +12,7 @@ try:
     from youtube_search_mcp.tools.resources import register_resources
     from youtube_search_mcp.tools.search_tools import register_search_tools
     from youtube_search_mcp.tools.utility_tools import register_utility_tools
-    from youtube_search_mcp.utils.logger import get_logger, setup_logging
+    from youtube_search_mcp.utils.logger import setup_logging
 except ImportError:
     from .core.config import get_config
     from .tools.dependencies import initialize_dependencies
@@ -51,7 +51,7 @@ async def main() -> None:
     """Async entry point for the server."""
     # Initialize dependencies (validates connection)
     await initialize_dependencies()
-    
+
     # Run the server
     logger.info(f"Starting MCP server {config.server_name}")
     await mcp.run_async(transport="stdio")
@@ -61,7 +61,7 @@ def run() -> None:
     """Run the MCP server."""
     # Windows-specific workaround for WinError 10014 in asyncio.Runner
     import sys
-    
+
     if sys.platform == "win32":
         try:
             loop = asyncio.ProactorEventLoop()
