@@ -1,16 +1,16 @@
 <div align="center">
-  <img src="assets/logo.png" alt="Logo" width="150">
+  <img src="assets/logo.png" alt="Logo" width="200">
   <h1 align="center">YouTube Search & Download MCP Server</h1>
   <p align="center">
     <strong>YouTube API 키 없이 동영상을 검색하고 다운로드하는 MCP 서버</strong>
     <br />
-    <a href="https://github.com/easyhak/youtube-search-mcp/issues/new/choose">버그 리포트</a>
+    <a href="https://github.com/easyhak/youtube-search-mcp/issues/new/choose">Bug Report</a>
     ·
-    <a href="https://github.com/easyhak/youtube-search-mcp/issues/new/choose">기능 요청</a>
+    <a href="https://github.com/easyhak/youtube-search-mcp/issues/new/choose">Feature Request</a>
   </p>
 
   <p align="center">
-    <a href="/LICENSE"><img src="https://img.shields.io/github/license/JIHAK-dev/youtube-search-mcp?style=flat-square&color=blue" alt="License"></a>
+    <a href="/LICENSE"><img src="https://img.shields.io/github/license/easyhak/youtube-search-mcp?style=flat-square&color=blue" alt="License"></a>
     <a href="https://github.com/easyhak/youtube-search-mcp/releases"><img src="https://img.shields.io/github/v/release/JIHAK-dev/youtube-search-mcp?style=flat-square&color=success" alt="Release"></a>
     <a href="https://github.com/psf/black"><img src="https://img.shields.io/badge/code%20style-black-000000.svg?style=flat-square" alt="Code style: black"></a>
     <a href="https://docs.astral.sh/ruff/"><img src="https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json&style=flat-square" alt="Ruff"></a>
