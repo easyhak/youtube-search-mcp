@@ -26,22 +26,9 @@ def register_search_tools(mcp: FastMCP) -> None:
         mcp: FastMCP server instance
     """
 
-    @mcp.tool()
+    @mcp.tool(name="search_videos")
     async def search_videos(query: str, max_results: int = 10, output_format: str = "json") -> str:
-        """
-        Search YouTube for videos matching a query.
-
-        Args:
-            query: Search query string (e.g., "python tutorial")
-            max_results: Maximum number of results to return (1-50, default: 10)
-            output_format: Output format - "json" or "markdown" (default: "json")
-
-        Returns:
-            Formatted search results with video metadata
-
-        Example:
-            search_videos("machine learning", max_results=5, output_format="json")
-        """
+        """Search YouTube for videos matching a query."""
         try:
             logger.info(f"Search request: query='{query}', max_results={max_results}")
 

@@ -306,6 +306,7 @@ class YtDlpDownloader(Downloader):
             "no_warnings": True,
             "noprogress": True,
             "ffmpeg_location": get_ffmpeg_path(),
+            "concurrent_fragment_downloads": 8,
             "postprocessors": [
                 {
                     "key": "FFmpegVideoRemuxer",
@@ -338,6 +339,7 @@ class YtDlpDownloader(Downloader):
             "no_warnings": True,
             "noprogress": True,
             "ffmpeg_location": get_ffmpeg_path(),
+            "concurrent_fragment_downloads": 8,
         }
 
     def _execute_download(self, video_id: str, ydl_opts: dict[str, Any]) -> dict[str, Any]:

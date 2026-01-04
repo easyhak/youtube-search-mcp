@@ -1,7 +1,6 @@
 """YouTube search provider implementation using yt-dlp."""
 
 import asyncio
-from datetime import datetime
 from typing import Any
 
 import yt_dlp  # type: ignore[import-untyped]
@@ -18,6 +17,7 @@ from ..models.search_params import SearchParams
 from ..models.video import Video, VideoDetails
 from ..utils.file_utils import get_ffmpeg_path
 from ..utils.logger import get_logger
+from .parsers import YtDlpDataParser
 from .retry_decorator import async_retry
 
 logger = get_logger(__name__)
@@ -46,6 +46,7 @@ class YtDlpSearchProvider(SearchProvider):
         self._timeout = timeout
         self._retries = retries
         self._ydl_opts = self._build_ydl_options()
+        self._parser = YtDlpDataParser()
 
     def _build_ydl_options(self) -> dict[str, Any]:
         """
@@ -97,7 +98,7 @@ class YtDlpSearchProvider(SearchProvider):
             loop = asyncio.get_event_loop()
             results = await loop.run_in_executor(None, self._execute_search, params)
 
-            videos = [self._parse_video(item) for item in results if item]
+            videos = [self._parser.parse_video(item) for item in results if item]
             logger.info(f"Found {len(videos)} videos")
 
             return videos
@@ -150,7 +151,7 @@ class YtDlpSearchProvider(SearchProvider):
             loop = asyncio.get_event_loop()
             info = await loop.run_in_executor(None, self._execute_extract_info, video_id)
 
-            details = self._parse_video_details(info)
+            details = self._parser.parse_video_details(info)
             logger.info(f"Retrieved details for: {details.title}")
 
             return details
@@ -202,122 +203,6 @@ class YtDlpSearchProvider(SearchProvider):
             logger.error(f"Provider validation failed: {e}")
             return False
 
-    def _extract_thumbnail_url(self, data: dict[str, Any]) -> str | None:
-        """
-        Extract the best quality thumbnail URL from video data.
-
-        Args:
-            data: Raw video data from yt-dlp
-
-        Returns:
-            Thumbnail URL or None if not available
-        """
-        thumbnail_url = data.get("thumbnail")
-        if isinstance(thumbnail_url, str):
-            return thumbnail_url
-
-        thumbnails = data.get("thumbnails")
-        if isinstance(thumbnails, list) and len(thumbnails) > 0:
-            # yt-dlp orders thumbnails by quality (ascending), so last is highest quality
-            last_thumb = thumbnails[-1]
-            if isinstance(last_thumb, dict):
-                url = last_thumb.get("url")
-                if isinstance(url, str):
-                    return url
-
-        return None
-
-    def _convert_timestamp_to_date(self, timestamp: int | None) -> str | None:
-        """
-        Convert Unix timestamp to YYYYMMDD format.
-
-        Args:
-            timestamp: Unix timestamp in seconds
-
-        Returns:
-            Date string in YYYYMMDD format or None if conversion fails
-        """
-        if not timestamp:
-            return None
-
-        try:
-            dt = datetime.fromtimestamp(timestamp)
-            return dt.strftime("%Y%m%d")
-        except (ValueError, OSError, OverflowError) as e:
-            logger.warning(f"Failed to convert timestamp {timestamp}: {e}")
-            return None
-
-    def _parse_video(self, data: dict[str, Any]) -> Video:
-        """
-        Parse yt-dlp result into Video model.
-
-        Args:
-            data: Raw video data from yt-dlp
-
-        Returns:
-            Video model instance
-        """
-        video_id = data.get("id", "")
-        thumbnail_url = self._extract_thumbnail_url(data)
-
-        # Extract timestamp fields and convert to upload_date
-        timestamp = data.get("timestamp")
-        release_timestamp = data.get("release_timestamp")
-        upload_date = self._convert_timestamp_to_date(timestamp or release_timestamp)
-
-        return Video(
-            video_id=video_id,
-            title=data.get("title", "Unknown"),
-            url=f"https://youtube.com/watch?v={video_id}",
-            duration=data.get("duration"),
-            view_count=data.get("view_count"),
-            uploader=data.get("uploader") or data.get("channel"),
-            upload_date=upload_date,
-            thumbnail=thumbnail_url,
-            timestamp=timestamp,
-            release_timestamp=release_timestamp,
-        )
-
-    def _parse_video_details(self, data: dict[str, Any]) -> VideoDetails:
-        """
-        Parse detailed video information.
-
-        Args:
-            data: Raw video data from yt-dlp
-
-        Returns:
-            VideoDetails model instance
-        """
-        video_id = data.get("id", "")
-        thumbnail_url = self._extract_thumbnail_url(data)
-
-        # Extract timestamp fields and convert to upload_date
-        timestamp = data.get("timestamp")
-        release_timestamp = data.get("release_timestamp")
-        upload_date = self._convert_timestamp_to_date(timestamp or release_timestamp)
-
-        return VideoDetails(
-            video_id=video_id,
-            title=data.get("title", "Unknown"),
-            url=f"https://youtube.com/watch?v={video_id}",
-            duration=data.get("duration"),
-            view_count=data.get("view_count"),
-            uploader=data.get("uploader") or data.get("channel"),
-            uploader_id=data.get("uploader_id") or data.get("channel_id"),
-            upload_date=upload_date,
-            thumbnail=thumbnail_url,
-            timestamp=timestamp,
-            release_timestamp=release_timestamp,
-            # Extended metadata
-            description=data.get("description"),
-            tags=data.get("tags", []),
-            categories=data.get("categories", []),
-            like_count=data.get("like_count"),
-            comment_count=data.get("comment_count"),
-            age_limit=data.get("age_limit"),
-            formats_available=len(data.get("formats", [])),
-        )
-
     @async_retry(max_attempts=3, exceptions=(NetworkError,))
     async def search_playlists(self, query: str, max_results: int = 10) -> list[Playlist]:
         """
@@ -343,7 +228,7 @@ class YtDlpSearchProvider(SearchProvider):
                 None, self._execute_playlist_search, query, max_results
             )
 
-            playlists = [self._parse_playlist(item) for item in results if item]
+            playlists = [self._parser.parse_playlist(item) for item in results if item]
             logger.info(f"Found {len(playlists)} playlists")
 
             return playlists
@@ -442,7 +327,7 @@ class YtDlpSearchProvider(SearchProvider):
             loop = asyncio.get_event_loop()
             info = await loop.run_in_executor(None, self._execute_extract_playlist, playlist_id)
 
-            details = self._parse_playlist_details(info)
+            details = self._parser.parse_playlist_details(info)
             logger.info(f"Retrieved details for playlist: {details.title}")
 
             return details
@@ -516,7 +401,7 @@ class YtDlpSearchProvider(SearchProvider):
             if max_results:
                 entries = entries[:max_results]
 
-            videos = [self._parse_video(entry) for entry in entries if entry]
+            videos = [self._parser.parse_video(entry) for entry in entries if entry]
             logger.info(f"Retrieved {len(videos)} videos from playlist")
 
             return videos
@@ -555,68 +440,3 @@ class YtDlpSearchProvider(SearchProvider):
         with yt_dlp.YoutubeDL(self._ydl_opts) as ydl:
             info = ydl.extract_info(url, download=False)
             return info.get("entries", []) if isinstance(info, dict) else []
-
-    def _parse_playlist(self, data: dict[str, Any]) -> Playlist:
-        """
-        Parse yt-dlp result into Playlist model.
-
-        Args:
-            data: Raw playlist data from yt-dlp
-
-        Returns:
-            Playlist model instance
-        """
-        playlist_id = data.get("id", "")
-
-        # Get thumbnail from first video or playlist thumbnail
-        thumbnail = data.get("thumbnail")
-        if not thumbnail and data.get("thumbnails"):
-            thumbnails = data.get("thumbnails", [])
-            if thumbnails:
-                thumbnail = thumbnails[-1].get("url") if isinstance(thumbnails[-1], dict) else None
-
-        return Playlist(
-            playlist_id=playlist_id,
-            title=data.get("title", "Unknown"),
-            url=f"https://youtube.com/playlist?list={playlist_id}",
-            uploader=data.get("uploader") or data.get("channel"),
-            uploader_id=data.get("uploader_id") or data.get("channel_id"),
-            video_count=data.get("playlist_count") or data.get("n_entries"),
-            thumbnail=thumbnail,
-            description=data.get("description"),
-            modified_date=data.get("modified_date"),
-        )
-
-    def _parse_playlist_details(self, data: dict[str, Any]) -> PlaylistDetails:
-        """
-        Parse detailed playlist information.
-
-        Args:
-            data: Raw playlist data from yt-dlp
-
-        Returns:
-            PlaylistDetails model instance
-        """
-        playlist_id = data.get("id", "")
-
-        # Get thumbnail from first video or playlist thumbnail
-        thumbnail = data.get("thumbnail")
-        if not thumbnail and data.get("thumbnails"):
-            thumbnails = data.get("thumbnails", [])
-            if thumbnails:
-                thumbnail = thumbnails[-1].get("url") if isinstance(thumbnails[-1], dict) else None
-
-        return PlaylistDetails(
-            playlist_id=playlist_id,
-            title=data.get("title", "Unknown"),
-            url=f"https://youtube.com/playlist?list={playlist_id}",
-            uploader=data.get("uploader") or data.get("channel"),
-            uploader_id=data.get("uploader_id") or data.get("channel_id"),
-            video_count=data.get("playlist_count") or len(data.get("entries", [])),
-            thumbnail=thumbnail,
-            description=data.get("description"),
-            modified_date=data.get("modified_date"),
-            availability=data.get("availability"),
-            tags=data.get("tags", []),
-            view_count=data.get("view_count"),
-        )

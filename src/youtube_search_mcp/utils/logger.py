@@ -25,6 +25,14 @@ def setup_logging(
     if log_format is None:
         log_format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 
+    # Force stderr to UTF-8 on Windows to support emojis
+    if sys.platform == "win32" and hasattr(sys.stderr, "reconfigure"):
+        try:
+            sys.stderr.reconfigure(encoding="utf-8")
+        except Exception:
+            # Fallback if reconfiguration fails (e.g., inside some IDEs or test runners)
+            pass
+
     # Configure root logger
     logging.basicConfig(
         level=getattr(logging, level),

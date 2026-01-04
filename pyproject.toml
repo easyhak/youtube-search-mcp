@@ -1,6 +1,6 @@
 [project]
 name = "youtube-search-mcp"
-version = "1.0.2"
+version = "1.0.2.5"
 description = "YouTube search and download MCP server using yt-dlp and FastMCP 2.0"
 authors = [
     {name = "JIHAK LEE", email = "zhzhk17@gmail.com"}

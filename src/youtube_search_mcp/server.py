@@ -32,11 +32,6 @@ logger = setup_logging(config.log_level)
 # Initialize MCP server
 mcp = FastMCP(name=config.server_name)
 
-# Initialize dependencies synchronously at module load
-logger.info(f"Initializing {config.server_name} v{config.server_version}")
-asyncio.run(initialize_dependencies())
-logger.info("Dependencies initialized successfully")
-
 # Register all tools and resources
 register_search_tools(mcp)
 register_playlist_tools(mcp)
@@ -44,11 +39,40 @@ register_download_tools(mcp)
 register_utility_tools(mcp)
 register_resources(mcp)
 
+# Log registered tools for debugging
+try:
+    tool_names = list(mcp._tool_manager._tools.keys()) if hasattr(mcp, "_tool_manager") else "unknown"
+    logger.info(f"Registered tools: {tool_names}")
+except Exception as e:
+    logger.warning(f"Failed to log registered tools: {e}")
+
+
+async def main() -> None:
+    """Async entry point for the server."""
+    # Initialize dependencies (validates connection)
+    await initialize_dependencies()
+    
+    # Run the server
+    logger.info(f"Starting MCP server {config.server_name}")
+    await mcp.run_async(transport="stdio")
+
 
 def run() -> None:
     """Run the MCP server."""
-    logger.info(f"Starting MCP server {config.server_name}")
-    mcp.run(transport="stdio")
+    # Windows-specific workaround for WinError 10014 in asyncio.Runner
+    import sys
+    
+    if sys.platform == "win32":
+        try:
+            loop = asyncio.ProactorEventLoop()
+            asyncio.set_event_loop(loop)
+            loop.run_until_complete(main())
+        except Exception as e:
+            logger.error(f"Failed to run server with workaround: {e}")
+            # Fallback
+            asyncio.run(main())
+    else:
+        asyncio.run(main())
 
 
 if __name__ == "__main__":

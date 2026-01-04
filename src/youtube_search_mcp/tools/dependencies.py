@@ -50,18 +50,42 @@ async def initialize_dependencies() -> None:
         logger.error(f"Error validating search provider: {e}")
 
 
+def _ensure_initialized() -> None:
+    """Synchronously initialize dependencies if they are missing."""
+    global _search_provider, _downloader, _formatters
+    
+    if _search_provider is not None:
+        return
+
+    logger.info("Performing lazy initialization of dependencies...")
+    
+    # Initialize search provider
+    _search_provider = YtDlpSearchProvider(
+        max_results_default=config.default_max_results,
+        timeout=config.search_timeout,
+        retries=config.max_retries,
+    )
+
+    # Initialize downloader
+    _downloader = YtDlpDownloader(
+        default_output_dir=config.download_dir, min_disk_space_mb=config.min_disk_space_mb
+    )
+
+    # Initialize formatters
+    _formatters = {"json": JsonFormatter(), "markdown": MarkdownFormatter()}
+
+
 def get_search_provider() -> SearchProvider:
     """
     Get the search provider instance.
 
     Returns:
         SearchProvider instance
-
-    Raises:
-        RuntimeError: If search provider is not initialized
     """
     if _search_provider is None:
-        raise RuntimeError("Search provider not initialized. Call initialize_dependencies() first.")
+        _ensure_initialized()
+        if _search_provider is None:  # Should not happen
+            raise RuntimeError("Failed to initialize search provider")
     return _search_provider
 
 
@@ -71,12 +95,11 @@ def get_downloader() -> Downloader:
 
     Returns:
         Downloader instance
-
-    Raises:
-        RuntimeError: If downloader is not initialized
     """
     if _downloader is None:
-        raise RuntimeError("Downloader not initialized. Call initialize_dependencies() first.")
+        _ensure_initialized()
+        if _downloader is None:
+            raise RuntimeError("Failed to initialize downloader")
     return _downloader
 
 
@@ -90,4 +113,6 @@ def get_formatter(format_type: str = "json") -> ResultFormatter:
     Returns:
         ResultFormatter instance (defaults to JSON if type not found)
     """
+    if not _formatters:
+        _ensure_initialized()
     return _formatters.get(format_type, _formatters["json"])
