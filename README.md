@@ -11,7 +11,7 @@
 
   <p align="center">
     <a href="/LICENSE"><img src="https://img.shields.io/github/license/easyhak/youtube-search-mcp?style=flat-square&color=blue" alt="License"></a>
-    <a href="https://github.com/easyhak/youtube-search-mcp/releases"><img src="https://img.shields.io/github/v/release/JIHAK-dev/youtube-search-mcp?style=flat-square&color=success" alt="Release"></a>
+    <a href="https://github.com/easyhak/youtube-search-mcp/releases"><img src="https://img.shields.io/github/v/release/easyhak/youtube-search-mcp?style=flat-square&color=success" alt="Release"></a>
     <a href="https://github.com/psf/black"><img src="https://img.shields.io/badge/code%20style-black-000000.svg?style=flat-square" alt="Code style: black"></a>
     <a href="https://docs.astral.sh/ruff/"><img src="https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json&style=flat-square" alt="Ruff"></a>
   </p>
@@ -133,7 +133,7 @@ Interested in contributing? Here’s how to set up your development environment.
 
 1.  **Clone the Repository**
     ```bash
-    git clone https://github.com/JIHAK-dev/youtube-search-mcp.git
+    git clone https://github.com/easyhak/youtube-search-mcp.git
     cd youtube-search-mcp
     ```
 
@@ -172,7 +172,7 @@ Interested in contributing? Here’s how to set up your development environment.
 
 Contributions are what make the open-source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
 
-Please refer to the [**Contributing Guidelines**](https://github.com/JIHAK-dev/youtube-search-mcp/blob/main/CONTRIBUTING.md) for more details.
+Please refer to the [**Contributing Guidelines**](https://github.com/easyhak/youtube-search-mcp/blob/main/CONTRIBUTING.md) for more details.
 
 ## 📜 License
 
