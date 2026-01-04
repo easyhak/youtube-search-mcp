@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="assets/logo.png" alt="Logo" width="200">
+  <img width="400" alt="logo" src="https://github.com/user-attachments/assets/4ab98cc2-d0f7-4953-840f-d7fb43d4b893" />
   <h1 align="center">YouTube Search & Download MCP Server</h1>
   <p align="center">
     <strong>YouTube API 키 없이 동영상을 검색하고 다운로드하는 MCP 서버</strong>
