@@ -55,8 +55,8 @@ class Config(BaseSettings):
 
     # Download settings
     download_dir: str = "downloads"
-    default_video_quality: Literal["best", "high", "medium", "low"] = "best"
-    default_audio_quality: Literal["best", "high", "medium", "low"] = "best"
+    default_video_quality: Literal["best", "high", "medium", "low"] = "high"
+    default_audio_quality: Literal["best", "high", "medium", "low"] = "high"
     default_video_format: str = "mp4"
     default_audio_format: str = "mp3"
     min_disk_space_mb: int = 100
